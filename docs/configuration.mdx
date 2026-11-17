@@ -177,6 +177,8 @@ When `SKILL_EVAL_LLM_PROVIDER` is unset and exactly one of these credentials is 
 - `OPENAI_API_KEY` → `openai`
 - `ANTHROPIC_API_KEY` → `anthropic`
 
+`AIMLAPI_API_KEY` selects `aimlapi` only when none of the variables above is set; alongside any of them it is ignored for auto-selection.
+
 If none of those variables is set, LLM-backed commands fail with a configuration error. If more than one is exported, resolution also fails — `SKILL_EVAL_LLM_PROVIDER` is required when multiple public provider credentials are configured; there is no silent preference order.
 
 ## Embeddings

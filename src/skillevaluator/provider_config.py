@@ -888,6 +888,10 @@ def _selected_provider(environ: Mapping[str, str], variable: str) -> str:
         )
         if environ.get(credential, "").strip()
     ]
+    # AI/ML API is chosen only when its key is the sole public credential, so
+    # adding it never changes or breaks an existing provider setup.
+    if not available and environ.get("AIMLAPI_API_KEY", "").strip():
+        return "aimlapi"
     if len(available) > 1:
         choices = _SUPPORTED_PROVIDERS
         if "EMBEDDING" in variable:

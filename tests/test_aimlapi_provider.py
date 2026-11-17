@@ -161,3 +161,35 @@ def test_skillspector_bridge_routes_aimlapi_through_openai_adapter(monkeypatch) 
     assert child_env["SKILLSPECTOR_MODEL"] == "openai/gpt-6.1-sol"
     assert child_env["OPENAI_API_KEY"] == _KEY
     assert child_env["OPENAI_BASE_URL"] == AIMLAPI_BASE_URL
+
+
+def test_aimlapi_is_auto_selected_when_its_key_is_the_only_credential() -> None:
+    env = {"AIMLAPI_API_KEY": _KEY}
+
+    assert resolve_llm_provider(env).provider == "aimlapi"
+    assert resolve_embedding_provider(env).provider == "aimlapi"
+
+
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"OPENAI_API_KEY": "openai-key"},
+        {"NVIDIA_API_KEY": "nvapi-key"},
+        {"ANTHROPIC_API_KEY": "anthropic-key"},
+        {"SKILL_EVAL_LLM_PROVIDER": "openai-compatible", "SKILL_EVAL_LLM_BASE_URL": "https://gw.test/v1"},
+    ],
+)
+def test_existing_provider_setups_do_not_change_when_aimlapi_key_is_added(env: dict[str, str]) -> None:
+    env = {"SKILL_EVAL_LLM_API_KEY": "gateway-key", **env}
+
+    assert resolve_llm_provider({**env, "AIMLAPI_API_KEY": _KEY}) == resolve_llm_provider(env)
+
+
+def test_llm_checks_turn_on_by_default_with_only_an_aimlapi_key(monkeypatch) -> None:
+    from skillevaluator.tier_workflows import _chat_enabled
+
+    for name in ("SKILL_EVAL_LLM_PROVIDER", "NVIDIA_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("AIMLAPI_API_KEY", _KEY)
+
+    assert _chat_enabled(None) is True
