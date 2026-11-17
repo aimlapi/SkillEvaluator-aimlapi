@@ -79,7 +79,7 @@ SKILLSPECTOR_LLM_PROVENANCE_CONTROL_ADAPTERS = {
 # SkillEvaluator providers the SkillSpector bridge resolves (``--llm``). They
 # name the SkillEvaluator configuration, which SkillSpector's own adapter label
 # cannot: ``nv_build`` and ``openai-compatible`` both run as its ``openai`` adapter.
-SKILLSPECTOR_PROVIDER_IDS = frozenset({"anthropic", "bedrock", "nv_build", "openai", "openai-compatible"})
+SKILLSPECTOR_PROVIDER_IDS = frozenset({"aimlapi", "anthropic", "bedrock", "nv_build", "openai", "openai-compatible"})
 SKILLSPECTOR_LLM_PROVENANCE_MIN_SEED = -(1 << 63)
 SKILLSPECTOR_LLM_PROVENANCE_MAX_SEED = (1 << 63) - 1
 

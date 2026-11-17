@@ -40,6 +40,7 @@ ADC_DISCOVERY_ENV_VARS: frozenset[str] = frozenset(
 _ADC_TOKEN_EXPIRY_BY_TOKEN: dict[str, float] = {}
 OPENAI_BASE_URL = "https://api.openai.com/v1"
 PUBLIC_NVIDIA_BUILD_BASE_URL = "https://integrate.api.nvidia.com/v1"
+AIMLAPI_BASE_URL = "https://api.aimlapi.com/v1"
 _PROVIDER_SETUP_URL = "https://docs.nvidia.com/skills/skillevaluator/configuration"
 
 # Pinned frontier chat defaults (not floating aliases like ``gpt-5`` / ``claude-opus-latest``).
@@ -53,6 +54,9 @@ CHAT_DEFAULT_NVIDIA = "nvidia/nemotron-3.5-lightning-30b-a3b"
 # Gateway catalog IDs are independent of native-provider model names. Operators
 # can override these defaults without changing the configured endpoint or key.
 CHAT_DEFAULT_GATEWAY = "nvidia/nvidia/nemotron-3-super-120b-long-ctx"
+# AI/ML API catalog ID for the OpenAI default; supports tools, vision,
+# structured output and streaming on Chat Completions.
+CHAT_DEFAULT_AIMLAPI = "openai/gpt-6.1-sol"
 # Lower-cost OpenAI alternative for ``SKILL_EVAL_LLM_MODEL`` overrides.
 CHAT_CHEAP_OPENAI = "gpt-5.4-mini"
 
@@ -62,6 +66,7 @@ CHAT_DEFAULT_MODELS = {
     "nv_build": CHAT_DEFAULT_NVIDIA,
     "bedrock": CHAT_DEFAULT_BEDROCK,
     "openai-compatible": CHAT_DEFAULT_GATEWAY,
+    "aimlapi": CHAT_DEFAULT_AIMLAPI,
 }
 # SkillSpector sends its own structured-output requests, so its defaults move
 # only to models the pinned SkillSpector release supports, not with the chat
@@ -73,6 +78,7 @@ SKILLSPECTOR_DEFAULT_MODELS = {
     "bedrock": "us.anthropic.claude-opus-5-5",
     "nv_build": "nvidia/nemotron-3.5-lightning-30b-a3b",
     "openai-compatible": "nvidia/nvidia/nemotron-3-super-120b-long-ctx",
+    "aimlapi": "openai/gpt-6.1-sol",
 }
 SKILLSPECTOR_DEFAULT_REASONING_EFFORT = "medium"
 # Agent harnesses have separate model defaults with their required capabilities.
@@ -91,8 +97,9 @@ _EMBEDDING_DEFAULT_MODELS = {
     "openai": "text-embedding-3-small",
     "nv_build": EMBEDDING_DEFAULT_NVIDIA,
     "openai-compatible": EMBEDDING_DEFAULT_GATEWAY,
+    "aimlapi": "openai/text-embedding-3-small",
 }
-_SUPPORTED_PROVIDERS = frozenset({"openai", "anthropic", "nv_build", "bedrock", "openai-compatible"})
+_SUPPORTED_PROVIDERS = frozenset({"openai", "anthropic", "nv_build", "bedrock", "openai-compatible", "aimlapi"})
 _ANTHROPIC_DNS_LABEL_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$")
 _ANTHROPIC_INTERNAL_LABEL_RE = re.compile(r"^[A-Za-z0-9_](?:[A-Za-z0-9_-]{0,61}[A-Za-z0-9_])?$")
 _ANTHROPIC_IPV6_ZONE_RE = re.compile(r"^[A-Za-z0-9._~-]+$")
@@ -586,6 +593,15 @@ def resolve_llm_provider(environ: Mapping[str, str] | None = None) -> ProviderCo
             litellm_model=f"openai/{model}",
             credential_env="NVIDIA_API_KEY",
         )
+    if provider == "aimlapi":
+        return ProviderConfig(
+            provider=provider,
+            model=model,
+            api_key=_required(env, "AIMLAPI_API_KEY"),
+            base_url=AIMLAPI_BASE_URL,
+            litellm_model=f"openai/{model}",
+            credential_env="AIMLAPI_API_KEY",
+        )
     if provider == "bedrock":
         return ProviderConfig(
             provider=provider,
@@ -628,8 +644,8 @@ def resolve_embedding_provider(environ: Mapping[str, str] | None = None) -> Prov
     if provider in {"anthropic", "bedrock"}:
         raise ProviderConfigurationError(
             f"SKILL_EVAL_EMBEDDING_PROVIDER is required because {provider} does not provide embeddings. "
-            "Set SKILL_EVAL_EMBEDDING_PROVIDER=nv_build|openai|openai-compatible (NVIDIA_API_KEY or "
-            "OPENAI_API_KEY supply the first two)."
+            "Set SKILL_EVAL_EMBEDDING_PROVIDER=nv_build|openai|aimlapi|openai-compatible (NVIDIA_API_KEY, "
+            "OPENAI_API_KEY or AIMLAPI_API_KEY supply the first three)."
         )
     _validate_provider(provider, variable="SKILL_EVAL_EMBEDDING_PROVIDER")
 
@@ -653,6 +669,16 @@ def resolve_embedding_provider(environ: Mapping[str, str] | None = None) -> Prov
             base_url=PUBLIC_NVIDIA_BUILD_BASE_URL,
             litellm_model=f"openai/{env.get('SKILL_EVAL_EMBEDDING_MODEL') or _EMBEDDING_DEFAULT_MODELS[provider]}",
             credential_env="NVIDIA_API_KEY",
+        )
+    if provider == "aimlapi":
+        model = env.get("SKILL_EVAL_EMBEDDING_MODEL") or _EMBEDDING_DEFAULT_MODELS[provider]
+        return ProviderConfig(
+            provider=provider,
+            model=model,
+            api_key=_required(env, "AIMLAPI_API_KEY"),
+            base_url=AIMLAPI_BASE_URL,
+            litellm_model=f"openai/{model}",
+            credential_env="AIMLAPI_API_KEY",
         )
 
     model = env.get("SKILL_EVAL_EMBEDDING_MODEL", _EMBEDDING_DEFAULT_MODELS[provider]).strip()
@@ -681,7 +707,13 @@ def _required(environ: Mapping[str, str], variable: str) -> str:
     value = environ.get(variable, "").strip()
     if not value:
         message = f"{variable} is required for the selected provider."
-        if variable in {"NVIDIA_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "SKILL_EVAL_LLM_API_KEY"}:
+        if variable in {
+            "NVIDIA_API_KEY",
+            "OPENAI_API_KEY",
+            "ANTHROPIC_API_KEY",
+            "AIMLAPI_API_KEY",
+            "SKILL_EVAL_LLM_API_KEY",
+        }:
             message += (
                 "\n\nSet it in your shell:\n"
                 f"  export {variable}='your-api-key'\n\n"

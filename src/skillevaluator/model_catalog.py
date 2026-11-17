@@ -526,7 +526,7 @@ def _request_settings(config: ProviderConfig) -> tuple[str, dict[str, str]]:
             "bedrock does not expose this HTTP catalog; use skillevaluator doctor --verify-models",
             kind=ModelCatalogFailureKind.UNSUPPORTED,
         )
-    if config.provider not in {"nv_build", "openai", "openai-compatible", "anthropic"}:
+    if config.provider not in {"nv_build", "openai", "openai-compatible", "anthropic", "aimlapi"}:
         raise ModelCatalogError(
             f"{config.provider} does not expose a supported HTTP model catalog",
             kind=ModelCatalogFailureKind.UNSUPPORTED,

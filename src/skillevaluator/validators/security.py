@@ -237,6 +237,7 @@ _SKILLSPECTOR_PROVIDER_MAP = {
     "nv_build": "nv_build",
     "openai": "openai",
     "openai-compatible": "openai",
+    "aimlapi": "openai",
 }
 _SKILLSPECTOR_PROCESS_ENV_NAMES = frozenset(
     {
@@ -736,7 +737,7 @@ def _skillspector_provider_env() -> tuple[dict[str, str], str | None]:
         provider.model if "SKILL_EVAL_LLM_MODEL" in resolution_env else SKILLSPECTOR_DEFAULT_MODELS[provider.provider]
     )
 
-    if provider.provider in {"nv_build", "openai-compatible"}:
+    if provider.provider in {"nv_build", "openai-compatible", "aimlapi"}:
         if provider.api_key:
             child_env["OPENAI_API_KEY"] = provider.api_key
         if provider.base_url:

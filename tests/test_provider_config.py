@@ -97,6 +97,7 @@ def test_skillspector_defaults_cover_every_provider_and_keep_supported_claude_mo
         "bedrock": "us.anthropic.claude-opus-5-5",
         "nv_build": "nvidia/nemotron-3.5-lightning-30b-a3b",
         "openai-compatible": "nvidia/nvidia/nemotron-3-super-120b-long-ctx",
+        "aimlapi": "openai/gpt-6.1-sol",
     }
 
 
@@ -371,12 +372,12 @@ def test_nvidia_build_is_inferred_from_its_public_key() -> None:
         (
             resolve_llm_provider,
             "SKILL_EVAL_LLM_PROVIDER",
-            {"anthropic", "bedrock", "nv_build", "openai", "openai-compatible"},
+            {"aimlapi", "anthropic", "bedrock", "nv_build", "openai", "openai-compatible"},
         ),
         (
             resolve_embedding_provider,
             "SKILL_EVAL_EMBEDDING_PROVIDER",
-            {"nv_build", "openai", "openai-compatible"},
+            {"aimlapi", "nv_build", "openai", "openai-compatible"},
         ),
     ],
 )
@@ -462,7 +463,7 @@ def test_llm_provider_error_lists_supported_choices() -> None:
 
     assert (
         str(exc_info.value)
-        == "SKILL_EVAL_LLM_PROVIDER must be one of: anthropic, bedrock, nv_build, openai, openai-compatible."
+        == "SKILL_EVAL_LLM_PROVIDER must be one of: aimlapi, anthropic, bedrock, nv_build, openai, openai-compatible."
     )
 
 
@@ -583,7 +584,7 @@ def test_no_credential_embedding_error_omits_non_embedding_providers() -> None:
 
 
 def test_embedding_rejection_of_llm_only_providers_names_the_fix() -> None:
-    with pytest.raises(ProviderConfigurationError, match=r"nv_build\|openai\|openai-compatible"):
+    with pytest.raises(ProviderConfigurationError, match=r"nv_build\|openai\|aimlapi\|openai-compatible"):
         resolve_embedding_provider({"ANTHROPIC_API_KEY": "test-anthropic-key"})
 
 

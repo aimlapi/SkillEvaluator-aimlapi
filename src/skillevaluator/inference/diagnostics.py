@@ -34,7 +34,7 @@ _ERROR_CODES = frozenset(
 _ERROR_PARAMETERS = frozenset(
     {"model", "temperature", "max_tokens", "max_completion_tokens", "response_format", "messages", "stream", "top_p"}
 )
-_PROVIDERS = frozenset({"openai", "anthropic", "nv_build", "bedrock", "openai-compatible"})
+_PROVIDERS = frozenset({"openai", "anthropic", "nv_build", "bedrock", "openai-compatible", "aimlapi"})
 
 
 def safe_llm_labels(provider: object, model: object) -> tuple[str, str]:

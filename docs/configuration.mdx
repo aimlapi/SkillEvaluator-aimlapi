@@ -89,7 +89,7 @@ agent runtime preflight fails. The extra execution is disabled by default.
 
 ## Choose an LLM provider
 
-Set `SKILL_EVAL_LLM_PROVIDER` to one of `openai`, `anthropic`, `nv_build`, `bedrock`, or `openai-compatible`. The selected provider determines which credential SkillEvaluator reads. Each ships a default evaluator model that `SKILL_EVAL_LLM_MODEL` overrides.
+Set `SKILL_EVAL_LLM_PROVIDER` to one of `openai`, `anthropic`, `nv_build`, `aimlapi`, `bedrock`, or `openai-compatible`. The selected provider determines which credential SkillEvaluator reads. Each ships a default evaluator model that `SKILL_EVAL_LLM_MODEL` overrides.
 
 <Tabs>
   <Tab title="OpenAI" language="openai">
@@ -125,6 +125,14 @@ Set `SKILL_EVAL_LLM_PROVIDER` to one of `openai`, `anthropic`, `nv_build`, `bedr
     <Tip>
     The quickest start is a free NVIDIA API Catalog key from [build.nvidia.com](https://build.nvidia.com/), exported as `NVIDIA_API_KEY` — it covers LLM judging and Tier 2 embeddings with one credential.
     </Tip>
+  </Tab>
+  <Tab title="AI/ML API" language="aimlapi">
+    ```bash title="AI/ML API setup"
+    export SKILL_EVAL_LLM_PROVIDER=aimlapi
+    export AIMLAPI_API_KEY='your-api-key'
+    ```
+
+    Default model: `openai/gpt-6.1-sol`; Tier 2 embeddings default to `openai/text-embedding-3-small`. The endpoint is fixed to `https://api.aimlapi.com/v1` — `SKILL_EVAL_LLM_BASE_URL` and `SKILL_EVAL_EMBEDDING_BASE_URL` do not override it, and `AIMLAPI_API_KEY` is sent only to that endpoint. Use any chat model ID from the [AI/ML API catalog](https://api.aimlapi.com/v1/models) in `SKILL_EVAL_LLM_MODEL`. Keys: [aimlapi.com/app/keys](https://aimlapi.com/app/keys). Tier 3 live agents do not support this provider yet; use `openai-compatible` with `SKILL_EVAL_LLM_BASE_URL=https://api.aimlapi.com/v1` for Tier 3.
   </Tab>
   <Tab title="Bedrock" language="bedrock">
     ```bash title="Amazon Bedrock setup"
@@ -179,6 +187,7 @@ Tier 2 uses an OpenAI-compatible embeddings API. `SKILL_EVAL_EMBEDDING_PROVIDER`
 | --- | --- | --- |
 | `openai` | `OPENAI_API_KEY` | `text-embedding-3-small` |
 | `nv_build` | `NVIDIA_API_KEY` | `nvidia/nemotron-3-embed-1b` |
+| `aimlapi` | `AIMLAPI_API_KEY` | `openai/text-embedding-3-small` |
 | `openai-compatible` | `SKILL_EVAL_EMBEDDING_API_KEY` (falls back to `SKILL_EVAL_LLM_API_KEY`) | `nvidia/nvidia/nemotron-3-embed-1b` |
 
 Use `SKILL_EVAL_EMBEDDING_MODEL` and `SKILL_EVAL_EMBEDDING_BASE_URL` to override defaults; for `openai-compatible`, the base URL falls back to `SKILL_EVAL_LLM_BASE_URL`. The `nv_build` endpoint is fixed to `https://integrate.api.nvidia.com/v1` — only its model can be overridden.

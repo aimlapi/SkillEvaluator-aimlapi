@@ -6,6 +6,10 @@ All notable changes to SkillEvaluator are documented in this file.
 
 ### Added
 
+- `aimlapi` provider for AI/ML API: set `SKILL_EVAL_LLM_PROVIDER=aimlapi` and
+  `AIMLAPI_API_KEY` to run LLM-backed checks, judging, Tier 2 embeddings and
+  model discovery against the fixed `https://api.aimlapi.com/v1` endpoint.
+  Existing provider selection is unchanged.
 - Dataset-first Tier 3 walkthrough: prepare and review cases before an explicit
   live evaluation, with a short dataset guide and concise run-settings page.
   Tier 1 and Tier 2 now have short first-run paths; detailed checks, policies,
